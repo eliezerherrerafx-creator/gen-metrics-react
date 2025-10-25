@@ -3,7 +3,7 @@ import Login from "./Login";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, 
+  getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut
 } from 'firebase/auth';
 import { 
   getFirestore, collection, query, onSnapshot, doc, 
@@ -1193,6 +1193,17 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard'); 
   const [prospectCounter, setProspectCounter] = useState(0); 
   const [feedback, setFeedback] = useState(null); 
+  // 🥊 Función para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      console.log("👋 Sesión cerrada correctamente");
+    } catch (error) {
+      console.error("❌ Error al cerrar sesión:", error);
+    }
+  };
+
 
   // 1. Inicialización de Auth
   useEffect(() => {
@@ -1357,7 +1368,6 @@ if (!user) return <Login onLogin={() => setUser(auth.currentUser)} />;
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        /* Oculta la flecha por defecto en selects de Tailwind */
         select {
           background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
           background-position: right 0.5rem center;
@@ -1367,53 +1377,82 @@ if (!user) return <Login onLogin={() => setUser(auth.currentUser)} />;
         }
       `}</style>
 
-      {/* Header Fijo (NOMBRE ACTUALIZADO AQUÍ) */}
-      <header className="sticky top-0 z-10 bg-[#1e1346] shadow-[0_4px_15px_rgba(0,0,0,0.5)] border-b border-indigo-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-          {/* Título actualizado */}
-          <h1 className="text-2xl font-extrabold text-white tracking-wider">
-            GEN <span className="text-emerald-400">METRICS</span>
-          </h1>
+      {/* Header Fijo */}
+      {/* Header Fijo */}
+<header className="sticky top-0 z-10 bg-[#1e1346] shadow-[0_4px_15px_rgba(0,0,0,0.5)] border-b border-indigo-700/50">
+  {/* Fila 1: Título + Usuario/Logout */}
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+    <h1 className="text-2xl font-extrabold text-white tracking-wider">
+      GEN <span className="text-emerald-400">METRICS</span>
+    </h1>
 
-          {/* Navigación (Desktop) */}
-          <nav className="hidden md:flex space-x-4">
-            <button
-              onClick={() => setCurrentPage('dashboard')}
-              className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition duration-150 ${
-                currentPage === 'dashboard' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30' : 'text-indigo-300 hover:bg-indigo-800/50'
-              }`}
-            >
-              <LayoutDashboard className="w-5 h-5 mr-2" />
-              Dashboard
-            </button>
-            <button
-              onClick={() => setCurrentPage('followUp')}
-              className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition duration-150 ${
-                currentPage === 'followUp' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30' : 'text-indigo-300 hover:bg-indigo-800/50'
-              }`}
-            >
-              <List className="w-5 h-5 mr-2" />
-              Seguimiento
-            </button>
-          </nav>
+    {user && (
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-white/70 font-medium">
+          👤 {user.displayName || "Usuario"}
+        </span>
+        <button
+          onClick={handleLogout}
+          className="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-pink-400 hover:bg-pink-900/40 transition"
+        >
+          <LogOut className="w-4 h-4 mr-1" />
+          Cerrar sesión
+        </button>
+      </div>
+    )}
+  </div>
 
-          {/* Info de Usuario / Auth */}
-          <div className="flex items-center space-x-4">
-            {isAuthReady && (
-                <div className="hidden lg:block text-xs text-indigo-400 bg-indigo-900/50 p-2 rounded-lg truncate max-w-xs">
-                    <User className="w-3 h-3 inline mr-1" />
-                    UID: {userId}
-                </div>
-            )}
-            
-            {/* Menú para móvil */}
-            <div className="md:hidden">
-              <Menu className="w-6 h-6 text-white cursor-pointer" onClick={() => setCurrentPage(currentPage === 'dashboard' ? 'followUp' : 'dashboard')} />
-            </div>
-          </div>
+  {/* Fila 2: Nav Desktop + UID + Menú móvil */}
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center">
+    {/* Navegación (Desktop) */}
+    <nav className="hidden md:flex space-x-4">
+      <button
+        onClick={() => setCurrentPage('dashboard')}
+        className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition duration-150 ${
+          currentPage === 'dashboard'
+            ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30'
+            : 'text-indigo-300 hover:bg-indigo-800/50'
+        }`}
+      >
+        <LayoutDashboard className="w-5 h-5 mr-2" />
+        Dashboard
+      </button>
+
+      <button
+        onClick={() => setCurrentPage('followUp')}
+        className={`flex items-center px-4 py-2 rounded-xl text-sm font-medium transition duration-150 ${
+          currentPage === 'followUp'
+            ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30'
+            : 'text-indigo-300 hover:bg-indigo-800/50'
+        }`}
+      >
+        <List className="w-5 h-5 mr-2" />
+        Seguimiento
+      </button>
+    </nav>
+
+    {/* Info de Usuario / Auth + Menú móvil */}
+    <div className="flex items-center space-x-4">
+      {isAuthReady && (
+        <div className="hidden lg:block text-xs text-indigo-400 bg-indigo-900/50 p-2 rounded-lg truncate max-w-xs">
+          <User className="w-3 h-3 inline mr-1" />
+          UID: {user?.uid || 'N/A'}
         </div>
-      </header>
-      
+      )}
+      {/* Menú para móvil */}
+      <div className="md:hidden">
+        <Menu
+          className="w-6 h-6 text-white cursor-pointer"
+          onClick={() =>
+            setCurrentPage(currentPage === 'dashboard' ? 'followUp' : 'dashboard')
+          }
+        />
+      </div>
+    </div>
+  </div>
+</header>
+
+
       {/* Contenido Principal */}
       <main className="max-w-7xl mx-auto pb-12">
         {renderContent()}
@@ -1427,10 +1466,10 @@ if (!user) return <Login onLogin={() => setUser(auth.currentUser)} />;
           onClose={() => setFeedback(null)} 
         />
       )}
-
     </div>
   );
 };
 
 export default App;
+
 

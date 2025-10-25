@@ -10,28 +10,35 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    try {
-      if (isRegistering) {
-        // Crear el usuario
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // Actualizar el perfil con el nombre
-        await updateProfile(userCredential.user, { displayName });
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-      onLogin(); // 🔥 Notifica al App.jsx que el usuario ya inició sesión
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  try {
+    if (isRegistering) {
+      // Crear el usuario
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Actualizar el perfil con el nombre
+      await updateProfile(userCredential.user, {
+	displayName: displayName // <-- el nombre que viene del input
+      });
+    } else {
+      // Iniciar sesión normalmente
+      await signInWithEmailAndPassword(auth, email, password);
     }
-  };
+
+	// 🔥 Refresca el usuario antes de notificar al App.jsx
+	await auth.currentUser.reload();
+	onLogin();
+  } catch (err) {
+    console.error(err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
