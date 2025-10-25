@@ -4,3 +4,4 @@
 
 [build.environment]
   NODE_VERSION = "22.11.0"
+  CI = "false"
