@@ -1,3 +1,4 @@
+import Login from "./Login";
 /* global __app_id, __firebase_config, __initial_auth_token */
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
@@ -1214,18 +1215,12 @@ const App = () => {
       }
     };
     
-const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-  if (!currentUser) {
-    try {
-      await signInAnonymously(auth); // 👈 aquí agrega el await
-      console.log("✅ Usuario anónimo autenticado con éxito");
-    } catch (error) {
-      console.error("❌ Error al iniciar sesión anónima:", error);
-    }
-  } else {
+const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  if (currentUser) {
     console.log("👤 Usuario autenticado:", currentUser.uid);
+  } else {
+    console.log("⚠️ No hay usuario autenticado.");
   }
-
   setUser(currentUser);
   setIsAuthReady(true);
 });
@@ -1348,6 +1343,13 @@ const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 
   const userId = user?.uid || 'N/A';
   
+
+
+// Si el usuario no ha iniciado sesión, muestra el login
+if (!user) return <Login onLogin={() => setUser(auth.currentUser)} />;
+
+
+
   return (
     <div className="min-h-screen bg-gray-900 font-sans">
       {/* Carga Tailwind CSS y usa Inter Font */}
@@ -1425,6 +1427,7 @@ const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
           onClose={() => setFeedback(null)} 
         />
       )}
+
     </div>
   );
 };
