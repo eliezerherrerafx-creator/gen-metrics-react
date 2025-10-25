@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at center, #0b0630 0%, #0a0526 60%, #07041f 100%);
+  background-attachment: fixed;
+  overflow-x: hidden; /* solo bloquea el scroll lateral */
+  overflow-y: auto;   /* permite el scroll vertical */
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+

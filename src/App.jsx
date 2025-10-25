@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import Login from "./Login";
 /* global __app_id, __firebase_config, __initial_auth_token */
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -58,18 +59,41 @@ const SELECT_OPTIONS = {
  * Función para obtener la clave del día actual (YYYY-MM-DD)
  * @returns {string}
  */
-const getTodayKey = () => {
-  return new Date().toISOString().split('T')[0];
-};
 
 /**
  * Función para obtener la fecha de inicio del día actual (medianoche UTC)
  * @returns {Date}
  */
+
+  /**
+ * Devuelve el inicio del día según la zona horaria de República Dominicana (UTC-4)
+ */
 const getTodayStart = () => {
   const now = new Date();
-  now.setUTCHours(0, 0, 0, 0);
-  return now;
+
+  // Forzar la zona horaria "America/Santo_Domingo"
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santo_Domingo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+
+  const [{ value: year }, , { value: month }, , { value: day }] = formatter.formatToParts(now);
+
+  // Retorna un Date local ajustado a las 00:00 hora RD
+  return new Date(`${year}-${month}-${day}T00:00:00-04:00`);
+};
+
+/**
+ * Devuelve la clave del día (YYYY-MM-DD) según hora RD
+ */
+const getTodayKey = () => {
+  const today = getTodayStart();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 /**
@@ -518,6 +542,25 @@ const ProspectChart = ({ dailyCountsChartData, dailyClosuresChartData, prospectC
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+  duration: 1200, // 1.2 segundos para animación principal
+  easing: 'easeOutQuart', // efecto suave al final
+},
+transitions: {
+  active: {
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuad',
+    },
+  },
+  resize: {
+    animation: {
+      duration: 500,
+      easing: 'easeOutBounce',
+    },
+  },
+},
+
         plugins: {
           legend: {
             display: false, 
@@ -1193,6 +1236,20 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard'); 
   const [prospectCounter, setProspectCounter] = useState(0); 
   const [feedback, setFeedback] = useState(null); 
+// Cambia el título dinámicamente según la página actual
+useEffect(() => {
+  if (!user) {
+    document.title = "GEN METRICS | INICIO DE SESIÓN";
+  } else if (currentPage === 'dashboard') {
+    document.title = "GEN METRICS | Dashboard";
+  } else if (currentPage === 'followUp') {
+    document.title = "GEN METRICS | Seguimiento";
+  } else {
+    document.title = "GEN METRICS";
+  }
+}, [user, currentPage]);
+  
+
   // 🥊 Función para cerrar sesión
   const handleLogout = async () => {
     try {
@@ -1356,28 +1413,60 @@ const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
   
 
 
-// Si el usuario no ha iniciado sesión, muestra el login
-if (!user) return <Login onLogin={() => setUser(auth.currentUser)} />;
-
-
-
+// Si el usuario no ha iniciado sesión, muestra el login con animación rápida tipo zoom-in
+if (!user) {
   return (
-    <div className="min-h-screen bg-gray-900 font-sans">
-      {/* Carga Tailwind CSS y usa Inter Font */}
-      <script src="https://cdn.tailwindcss.com"></script>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        select {
-          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
-          background-position: right 0.5rem center;
-          background-repeat: no-repeat;
-          background-size: 1.5em 1.5em;
-          padding-right: 2.5rem;
-        }
-      `}</style>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="login"
+        initial={{ scale: 1.05, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="min-h-screen w-screen flex items-center justify-center"
+        style={{
+          background: "radial-gradient(circle at center, #0b0630 0%, #0a0526 60%, #07041f 100%)",
+        }}
+      >
+        <Login onLogin={() => setUser(auth.currentUser)} />
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
-      {/* Header Fijo */}
+
+
+
+
+
+return (
+  <AnimatePresence mode="wait">
+<motion.div
+  key="app"
+  initial={{ scale: 1.1, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  exit={{ scale: 0.97, opacity: 0 }}
+  transition={{ duration: 0.25, ease: "easeOut" }}
+  className="min-h-screen w-screen font-sans flex flex-col text-white"
+  style={{
+    background: "radial-gradient(circle at center, #0b0630 0%, #0a0526 60%, #07041f 100%)",
+    backgroundAttachment: "fixed"
+  }}
+>
+
+  
+    {/* Carga Tailwind CSS y usa Inter Font */}
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+      body { font-family: 'Inter', sans-serif; }
+      select {
+        background-image: url('data:image/svg+xml,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"%3e%3cpath d="M7 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3e%3c/svg%3e');
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+      }
+      `}</style>
       {/* Header Fijo */}
 <header className="sticky top-0 z-10 bg-[#1e1346] shadow-[0_4px_15px_rgba(0,0,0,0.5)] border-b border-indigo-700/50">
   {/* Fila 1: Título + Usuario/Logout */}
@@ -1464,10 +1553,11 @@ if (!user) return <Login onLogin={() => setUser(auth.currentUser)} />;
           message={feedback.message} 
           type={feedback.type} 
           onClose={() => setFeedback(null)} 
-        />
+      />
       )}
-    </div>
-  );
+    </motion.div>
+  </AnimatePresence>
+);
 };
 
 export default App;

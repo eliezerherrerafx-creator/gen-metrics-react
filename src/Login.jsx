@@ -41,7 +41,7 @@ const handleSubmit = async (e) => {
 };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+<div className="flex items-center justify-center w-full h-full">
       <div className="bg-[#221655] p-8 rounded-2xl shadow-[0_0_25px_rgba(109,40,217,0.7)] border border-indigo-900 w-full max-w-md">
         <h2 className="text-2xl font-bold text-white mb-6 text-center">
           {isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión'}
