@@ -87,14 +87,23 @@ const getTodayStart = () => {
 
 /**
  * Devuelve la clave del día (YYYY-MM-DD) según hora RD
+ /**
+ * Obtiene la fecha actual ajustada a la zona horaria de República Dominicana (GMT-4)
+ * y la devuelve en formato YYYY-MM-DD
  */
 const getTodayKey = () => {
-  const today = getTodayStart();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const now = new Date();
+  // Ajusta manualmente 4 horas hacia atrás del UTC
+  const offsetRD = -4; // GMT-4
+  const localNow = new Date(now.getTime() + offsetRD * 60 * 60 * 1000);
+  const yyyy = localNow.getUTCFullYear();
+  const mm = String(localNow.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(localNow.getUTCDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 };
+
+console.log("🕒 Día detectado por GEN METRICS:", getTodayKey());
+
 
 /**
  * Escapa valores para CSV: doble comillas dentro del campo y encierra si hay coma o salto de línea.
